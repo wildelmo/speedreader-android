@@ -17,8 +17,10 @@ data class SessionState(
     val speedWpm: Int = 200,
     val isRampEnabled: Boolean = false,
     val isVariableTimingEnabled: Boolean = false,
+    val isZenModeEnabled: Boolean = false,
     val fontSize: Float = 48f,
-    val avgWordLength: Float = 5f
+    val avgWordLength: Float = 5f,
+    val countdownValue: Int? = null
 ) {
     val totalWords: Int get() = words.size
     val currentWord: Word? get() = if (words.isNotEmpty() && currentIndex in words.indices) words[currentIndex] else null

@@ -1,5 +1,7 @@
 package com.example.speedreader.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -29,8 +31,7 @@ fun ReadingScreen(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    var isZenModeEnabled by remember { mutableStateOf(false) }
-    val isMenuHidden = isZenModeEnabled && state.status == SessionStatus.READING
+    val isMenuHidden = state.isZenModeEnabled && state.status == SessionStatus.READING
     val interactionSource = remember { MutableInteractionSource() }
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -107,6 +108,39 @@ fun ReadingScreen(
                 fontSize = 32.sp,
                 modifier = Modifier.align(Alignment.Center)
             )
+        }
+
+        // Countdown overlay
+        AnimatedVisibility(
+            visible = state.countdownValue != null,
+            enter = fadeIn(animationSpec = tween(200)),
+            exit = fadeOut(animationSpec = tween(200))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(
+                    targetState = state.countdownValue,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(200)) togetherWith
+                        fadeOut(animationSpec = tween(200))
+                    },
+                    label = "countdown"
+                ) { countdown ->
+                    if (countdown != null) {
+                        Text(
+                            text = countdown.toString(),
+                            color = Color.White,
+                            fontSize = 150.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
         }
 
         // Top progress indicator
@@ -218,9 +252,9 @@ fun ReadingScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             
                             Button(
-                                onClick = { isZenModeEnabled = !isZenModeEnabled },
+                                onClick = { viewModel.toggleZenMode(!state.isZenModeEnabled) },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isZenModeEnabled) Color.White.copy(alpha = 0.2f) else Color.Transparent
+                                    containerColor = if (state.isZenModeEnabled) Color.White.copy(alpha = 0.2f) else Color.Transparent
                                 ),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                             ) {
@@ -328,9 +362,9 @@ fun ReadingScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         
                         Button(
-                            onClick = { isZenModeEnabled = !isZenModeEnabled },
+                            onClick = { viewModel.toggleZenMode(!state.isZenModeEnabled) },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isZenModeEnabled) Color.White.copy(alpha = 0.2f) else Color.Transparent
+                                containerColor = if (state.isZenModeEnabled) Color.White.copy(alpha = 0.2f) else Color.Transparent
                             )
                         ) {
                             Text("Zen", color = Color.White)

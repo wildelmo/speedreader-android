@@ -4,9 +4,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.speedreader.data.TextExtractor
@@ -26,8 +29,11 @@ fun InputScreen(
     
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
     
     val state by viewModel.state.collectAsState()
+    val scrollState = rememberScrollState()
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -75,17 +81,22 @@ fun InputScreen(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = if (isLandscape) 24.dp else 16.dp)
+            .padding(vertical = if (isLandscape) 8.dp else 16.dp)
+            .verticalScroll(scrollState),
+        verticalArrangement = Arrangement.spacedBy(if (isLandscape) 8.dp else 16.dp)
     ) {
-        Text("Speed Reading App", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            "Speed Reading App",
+            style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium
+        )
         
         OutlinedTextField(
             value = pastedText,
             onValueChange = { if (it.length <= 2_000_000) pastedText = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .heightIn(min = if (isLandscape) 80.dp else 120.dp, max = if (isLandscape) 150.dp else 300.dp),
             label = { Text("Paste text here") }
         )
         
@@ -98,9 +109,12 @@ fun InputScreen(
                     errorMessage = "Please paste some text."
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = if (isLandscape) 48.dp else 56.dp),
+            contentPadding = PaddingValues(if (isLandscape) 8.dp else 16.dp)
         ) {
-            Text("Load Pasted Text")
+            Text("Load Pasted Text", style = MaterialTheme.typography.bodyMedium)
         }
         
         Button(
@@ -108,21 +122,28 @@ fun InputScreen(
                 try {
                     val demoText = context.resources.openRawResource(com.example.speedreader.R.raw.demo).bufferedReader().use { it.readText() }
                     viewModel.loadText(demoText)
+                    viewModel.configureDemoDefaults()
                     onNavigateToReading()
                 } catch (e: Exception) {
                     e.printStackTrace()
                     errorMessage = "Error loading demo text: ${e.message}"
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = if (isLandscape) 48.dp else 56.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+            contentPadding = PaddingValues(if (isLandscape) 8.dp else 16.dp)
         ) {
-            Text("Demo")
+            Text("Demo", style = MaterialTheme.typography.bodyMedium)
         }
         
         HorizontalDivider()
         
-        Text("Or load a file (TXT, PDF, EPUB)", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "Or load a file (TXT, PDF, EPUB)",
+            style = if (isLandscape) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleMedium
+        )
         
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
@@ -143,10 +164,13 @@ fun InputScreen(
         
         Button(
             onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = if (isLandscape) 48.dp else 56.dp),
+            enabled = !isLoading,
+            contentPadding = PaddingValues(if (isLandscape) 8.dp else 16.dp)
         ) {
-            Text(if (isLoading) "Loading..." else "Select File")
+            Text(if (isLoading) "Loading..." else "Select File", style = MaterialTheme.typography.bodyMedium)
         }
         
         if (errorMessage != null) {

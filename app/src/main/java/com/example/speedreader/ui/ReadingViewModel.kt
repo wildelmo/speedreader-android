@@ -39,11 +39,7 @@ class ReadingViewModel : ViewModel() {
         
         _state.update { 
             it.copy(
-                status = SessionStatus.READING,
-                // Apply ramp logic based on start conditions if ramp is enabled and we are starting from idle
-                speedWpm = if (it.isRampEnabled && it.status == SessionStatus.IDLE) {
-                    (it.speedWpm - 100).coerceAtLeast(100)
-                } else it.speedWpm
+                status = SessionStatus.READING
             ) 
         }
         
@@ -64,7 +60,15 @@ class ReadingViewModel : ViewModel() {
     private fun startEngine() {
         stopEngine()
         readingJob = viewModelScope.launch {
-            delay(2000L)
+            // Countdown sequence: 3, 2, 1
+            _state.update { it.copy(countdownValue = 3) }
+            delay(700L)
+            _state.update { it.copy(countdownValue = 2) }
+            delay(700L)
+            _state.update { it.copy(countdownValue = 1) }
+            delay(600L)
+            _state.update { it.copy(countdownValue = null) }
+            
             while (_state.value.status == SessionStatus.READING) {
                 val currentState = _state.value
                 val word = currentState.currentWord
@@ -101,6 +105,7 @@ class ReadingViewModel : ViewModel() {
         readingJob = null
         rampJob?.cancel()
         rampJob = null
+        _state.update { it.copy(countdownValue = null) }
     }
 
     private fun startRampLoop() {
@@ -140,6 +145,16 @@ class ReadingViewModel : ViewModel() {
             rampJob?.cancel()
             rampJob = null
         }
+    }
+    
+    fun toggleZenMode(enabled: Boolean) {
+        _state.update { it.copy(isZenModeEnabled = enabled) }
+    }
+    
+    fun configureDemoDefaults() {
+        setSpeed(250)
+        toggleRamp(true)
+        toggleZenMode(true)
     }
     
     fun adjustSpeed(amount: Int) {
