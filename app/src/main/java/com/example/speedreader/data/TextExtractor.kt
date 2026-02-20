@@ -2,9 +2,6 @@ package com.example.speedreader.data
 
 import android.content.Context
 import android.net.Uri
-import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
-import com.tom_roush.pdfbox.pdmodel.PDDocument
-import com.tom_roush.pdfbox.text.PDFTextStripper
 import java.io.InputStream
 import java.util.zip.ZipInputStream
 
@@ -12,24 +9,6 @@ object TextExtractor {
 
     suspend fun extractTxt(context: Context, uri: Uri): String {
         return context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } ?: ""
-    }
-
-    suspend fun extractPdf(context: Context, uri: Uri, startPage: Int? = null, endPage: Int? = null): String {
-        PDFBoxResourceLoader.init(context)
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            val document = PDDocument.load(inputStream)
-            val stripper = PDFTextStripper()
-            if (startPage != null && startPage > 0) {
-                stripper.startPage = startPage
-            }
-            if (endPage != null && endPage > 0) {
-                stripper.endPage = endPage
-            }
-            val text = stripper.getText(document)
-            document.close()
-            return text
-        }
-        return ""
     }
 
     suspend fun extractEpub(context: Context, uri: Uri): String {

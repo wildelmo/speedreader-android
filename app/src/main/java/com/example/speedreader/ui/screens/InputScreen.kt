@@ -25,8 +25,6 @@ fun InputScreen(
     onNavigateToReading: () -> Unit
 ) {
     var pastedText by remember { mutableStateOf("") }
-    var pdfStartPage by remember { mutableStateOf("") }
-    var pdfEndPage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
@@ -47,12 +45,12 @@ fun InputScreen(
                     errorMessage = null
                     try {
                         val mimeType = context.contentResolver.getType(uri) ?: ""
+                        if (mimeType.contains("pdf") || uri.toString().endsWith(".pdf", ignoreCase = true)) {
+                            errorMessage = "PDF is not supported. Use TXT or EPUB."
+                            isLoading = false
+                            return@launch
+                        }
                         val text = when {
-                            mimeType.contains("pdf") || uri.toString().endsWith(".pdf", ignoreCase = true) -> {
-                                val sPage = pdfStartPage.toIntOrNull()
-                                val ePage = pdfEndPage.toIntOrNull()
-                                TextExtractor.extractPdf(context, uri, sPage, ePage)
-                            }
                             mimeType.contains("epub") || uri.toString().endsWith(".epub", ignoreCase = true) -> {
                                 TextExtractor.extractEpub(context, uri)
                             }
@@ -163,29 +161,12 @@ fun InputScreen(
         HorizontalDivider()
         
         Text(
-            "Or load a file (TXT, PDF, EPUB)",
+            "Or load a file (TXT, EPUB)",
             style = if (isLandscape) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleMedium
         )
         
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = pdfStartPage,
-                onValueChange = { pdfStartPage = it },
-                label = { Text("PDF Start Pg") },
-                modifier = Modifier.weight(1f),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = pdfEndPage,
-                onValueChange = { pdfEndPage = it },
-                label = { Text("PDF End Pg") },
-                modifier = Modifier.weight(1f),
-                singleLine = true
-            )
-        }
-        
         Button(
-            onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
+            onClick = { filePickerLauncher.launch(arrayOf("text/plain", "application/epub+zip")) },
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = if (isLandscape) 48.dp else 56.dp),
