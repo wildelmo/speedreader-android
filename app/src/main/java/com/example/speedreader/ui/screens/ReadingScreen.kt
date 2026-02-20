@@ -28,7 +28,8 @@ fun ReadingScreen(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    var isZenMode by remember { mutableStateOf(false) }
+    var isZenModeEnabled by remember { mutableStateOf(false) }
+    val isMenuHidden = isZenModeEnabled && state.status == SessionStatus.READING
     val interactionSource = remember { MutableInteractionSource() }
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -41,7 +42,9 @@ fun ReadingScreen(
                 interactionSource = interactionSource,
                 indication = null
             ) {
-                isZenMode = !isZenMode
+                if (state.status == SessionStatus.READING) {
+                    viewModel.pauseReading()
+                }
             }
     ) {
         // Center text display
@@ -99,7 +102,7 @@ fun ReadingScreen(
         }
 
         // Top progress indicator
-        if (!isZenMode) {
+        if (!isMenuHidden) {
             Text(
                 text = "${state.currentIndex} / ${state.totalWords}",
                 color = Color.Gray,
@@ -112,7 +115,7 @@ fun ReadingScreen(
         }
 
         // Bottom Controls
-        if (!isZenMode) {
+        if (!isMenuHidden) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -206,7 +209,13 @@ fun ReadingScreen(
                             
                             Spacer(modifier = Modifier.width(8.dp))
                             
-                            OutlinedButton(onClick = { isZenMode = true }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
+                            Button(
+                                onClick = { isZenModeEnabled = !isZenModeEnabled },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isZenModeEnabled) Color.White.copy(alpha = 0.2f) else Color.Transparent
+                                ),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
                                 Text("Zen", color = Color.White, fontSize = 12.sp)
                             }
                         }
@@ -310,8 +319,13 @@ fun ReadingScreen(
 
                         Spacer(modifier = Modifier.width(16.dp))
                         
-                        OutlinedButton(onClick = { isZenMode = true }) {
-                            Text("Zen (Hide)", color = Color.White)
+                        Button(
+                            onClick = { isZenModeEnabled = !isZenModeEnabled },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isZenModeEnabled) Color.White.copy(alpha = 0.2f) else Color.Transparent
+                            )
+                        ) {
+                            Text("Zen", color = Color.White)
                         }
                     }
                 }
