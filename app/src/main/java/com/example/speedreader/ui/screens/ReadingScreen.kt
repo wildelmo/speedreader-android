@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.speedreader.domain.SessionStatus
+import androidx.compose.ui.platform.LocalView
 import com.example.speedreader.ui.ReadingViewModel
 
 @Composable
@@ -33,6 +34,13 @@ fun ReadingScreen(
     val interactionSource = remember { MutableInteractionSource() }
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val view = LocalView.current
+    DisposableEffect(state.status) {
+        view.keepScreenOn = (state.status == SessionStatus.READING)
+        onDispose {
+            view.keepScreenOn = false
+        }
+    }
 
     Box(
         modifier = Modifier
