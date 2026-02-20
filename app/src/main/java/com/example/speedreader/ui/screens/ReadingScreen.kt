@@ -159,48 +159,57 @@ fun ReadingScreen(
 
         // Bottom Controls
         if (!isMenuHidden) {
+            val bannerPadding = if (isLandscape) 6.dp else 16.dp
+            val bannerSpacing = if (isLandscape) 4.dp else 8.dp
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Color.DarkGray)
+                    .background(Color.Transparent)
                     .navigationBarsPadding()
                     .displayCutoutPadding()
-                    .padding(if (isLandscape) 8.dp else 16.dp)
-                    .padding(bottom = if (isLandscape) 8.dp else 16.dp),
-                verticalArrangement = Arrangement.spacedBy(if (isLandscape) 2.dp else 8.dp)
+                    .padding(bannerPadding)
+                    .padding(bottom = bannerPadding),
+                verticalArrangement = Arrangement.spacedBy(bannerSpacing)
             ) {
                 if (isLandscape) {
                     val mins = state.timeRemainingSeconds / 60
                     val secs = state.timeRemainingSeconds % 60
                     val secStr = if (secs < 10) "0$secs" else "$secs"
                     
+                    // Info row (match portrait)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Speed: ${state.speedWpm} WPM", color = Color.White)
+                        Text("Remaining: $mins:$secStr", color = Color.White)
+                    }
+                    
+                    // Slider row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Spd: ${state.speedWpm} | Rem: $mins:$secStr", color = Color.White, fontSize = 12.sp)
-                        Spacer(modifier = Modifier.width(16.dp))
-                        
-                        Text("1", color = Color.White, fontSize = 10.sp)
+                        Text("1", color = Color.White)
                         Slider(
                             value = state.speedWpm.toFloat(),
                             onValueChange = { viewModel.setSpeed(it.toInt()) },
                             valueRange = 1f..1000f,
-                            modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
                         )
-                        Text("1000", color = Color.White, fontSize = 10.sp)
+                        Text("1000", color = Color.White)
                         
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         
-                        Text("20", color = Color.White, fontSize = 10.sp)
+                        Text("20px", color = Color.White, fontSize = 12.sp)
                         Slider(
                             value = state.fontSize,
                             onValueChange = { viewModel.setFontSize(it) },
                             valueRange = 20f..200f,
-                            modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
                         )
-                        Text("200", color = Color.White, fontSize = 10.sp)
+                        Text("200px", color = Color.White, fontSize = 12.sp)
                     }
                     
                     Row(
@@ -213,25 +222,25 @@ fun ReadingScreen(
                                 checked = state.isRampEnabled,
                                 onCheckedChange = { viewModel.toggleRamp(it) }
                             )
-                            Text("Ramp", color = Color.White, fontSize = 12.sp)
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Ramp up", color = Color.White)
+                            Spacer(modifier = Modifier.width(4.dp))
                             Checkbox(
                                 checked = state.isVariableTimingEnabled,
                                 onCheckedChange = { viewModel.toggleVariableTiming(it) }
                             )
-                            Text("Var Time", color = Color.White, fontSize = 12.sp)
+                            Text("Variable Time", color = Color.White)
                         }
                         
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (state.status == SessionStatus.READING) {
-                                Button(onClick = { viewModel.pauseReading() }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
-                                    Text("Pause", fontSize = 12.sp)
+                                Button(onClick = { viewModel.pauseReading() }) {
+                                    Text("Pause")
                                 }
                             } else {
-                                Button(onClick = { viewModel.startReading() }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
-                                    Icon(Icons.Default.PlayArrow, contentDescription = "Play", modifier = Modifier.size(16.dp))
+                                Button(onClick = { viewModel.startReading() }) {
+                                    Icon(Icons.Default.PlayArrow, contentDescription = "Play")
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Play", fontSize = 12.sp)
+                                    Text("Play")
                                 }
                             }
                             
@@ -242,12 +251,11 @@ fun ReadingScreen(
                                     viewModel.stopSession()
                                     onNavigateBack()
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                             ) {
-                                Icon(Icons.Default.Close, contentDescription = "Stop", tint = Color.White, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Close, contentDescription = "Stop", tint = Color.White)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Stop", color = Color.White, fontSize = 12.sp)
+                                Text("Stop", color = Color.White)
                             }
                             
                             Spacer(modifier = Modifier.width(8.dp))
@@ -256,10 +264,9 @@ fun ReadingScreen(
                                 onClick = { viewModel.toggleZenMode(!state.isZenModeEnabled) },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (state.isZenModeEnabled) Color.White.copy(alpha = 0.2f) else Color.Transparent
-                                ),
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                )
                             ) {
-                                Text("Zen", color = Color.White, fontSize = 12.sp)
+                                Text("Zen", color = Color.White)
                             }
                         }
                     }
