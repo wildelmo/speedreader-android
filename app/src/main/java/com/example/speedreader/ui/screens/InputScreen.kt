@@ -63,8 +63,6 @@ fun InputScreen(
                         
                         if (text.isBlank()) {
                             errorMessage = "No text extracted from file."
-                        } else if (text.length > 2 * 1024 * 1024) {
-                            errorMessage = "File text is too large (max 2MB chars)."
                         } else {
                             viewModel.loadText(text)
                             onNavigateToReading()
@@ -117,7 +115,7 @@ fun InputScreen(
         
         OutlinedTextField(
             value = pastedText,
-            onValueChange = { if (it.length <= 2_000_000) pastedText = it },
+            onValueChange = { pastedText = it },
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = if (isLandscape) 80.dp else 120.dp, max = if (isLandscape) 150.dp else 300.dp),
