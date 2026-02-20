@@ -105,6 +105,8 @@ fun ReadingScreen(
                 color = Color.Gray,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .displayCutoutPadding()
                     .padding(top = 32.dp)
             )
         }
@@ -116,6 +118,8 @@ fun ReadingScreen(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .background(Color.DarkGray)
+                    .navigationBarsPadding()
+                    .displayCutoutPadding()
                     .padding(if (isLandscape) 8.dp else 16.dp)
                     .padding(bottom = if (isLandscape) 8.dp else 16.dp),
                 verticalArrangement = Arrangement.spacedBy(if (isLandscape) 2.dp else 8.dp)
