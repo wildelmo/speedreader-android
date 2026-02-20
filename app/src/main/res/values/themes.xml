@@ -1,4 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Splash screen: black background, no icon, transitions into the main theme -->
+    <style name="Theme.Speedreader.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_blank</item>
+        <item name="postSplashScreenTheme">@style/Theme.Speedreader</item>
+    </style>
+
     <!-- Base application theme. -->
     <style name="Theme.Speedreader" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->

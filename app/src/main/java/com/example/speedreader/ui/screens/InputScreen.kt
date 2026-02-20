@@ -11,9 +11,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.speedreader.data.TextExtractor
 import com.example.speedreader.ui.ReadingViewModel
+import com.example.speedreader.ui.theme.ZenAccentRed
 import kotlinx.coroutines.launch
 
 @Composable
@@ -86,10 +89,31 @@ fun InputScreen(
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(if (isLandscape) 8.dp else 16.dp)
     ) {
-        Text(
-            "Speed Reading App",
-            style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium
-        )
+        // ZEN Speed Reader title with red "E" matching flash style
+        Row(
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                "Z",
+                style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "E",
+                style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
+                color = ZenAccentRed,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "N Speed Reader",
+                style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold
+            )
+        }
         
         OutlinedTextField(
             value = pastedText,

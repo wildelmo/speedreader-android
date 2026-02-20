@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.example.speedreader.domain.SessionStatus
 import androidx.compose.ui.platform.LocalView
 import com.example.speedreader.ui.ReadingViewModel
+import com.example.speedreader.ui.theme.ZenAccentRed
 
 @Composable
 fun ReadingScreen(
@@ -85,7 +86,7 @@ fun ReadingScreen(
                 // Center red letter
                 Text(
                     text = centerLetter,
-                    color = Color.Red,
+                    color = ZenAccentRed,
                     fontSize = fontSize,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold
