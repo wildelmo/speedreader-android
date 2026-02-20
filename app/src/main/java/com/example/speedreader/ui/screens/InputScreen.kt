@@ -102,6 +102,23 @@ fun InputScreen(
             Text("Load Pasted Text")
         }
         
+        Button(
+            onClick = {
+                try {
+                    val demoText = context.resources.openRawResource(com.example.speedreader.R.raw.demo).bufferedReader().use { it.readText() }
+                    viewModel.loadText(demoText)
+                    onNavigateToReading()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    errorMessage = "Error loading demo text: ${e.message}"
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+        ) {
+            Text("Demo")
+        }
+        
         HorizontalDivider()
         
         Text("Or load a file (TXT, PDF, EPUB)", style = MaterialTheme.typography.titleMedium)
