@@ -15,7 +15,6 @@ data class SessionState(
     val words: List<Word> = emptyList(),
     val currentIndex: Int = 0,
     val speedWpm: Int = 200,
-    val targetSpeedWpm: Int = 200, // For ramp up target
     val isRampEnabled: Boolean = false,
     val isVariableTimingEnabled: Boolean = false,
     val fontSize: Float = 48f,

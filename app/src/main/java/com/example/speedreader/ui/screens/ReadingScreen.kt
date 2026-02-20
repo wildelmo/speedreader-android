@@ -12,6 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +30,8 @@ fun ReadingScreen(
     val state by viewModel.state.collectAsState()
     var isZenMode by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Box(
         modifier = Modifier
@@ -112,116 +116,199 @@ fun ReadingScreen(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .background(Color.DarkGray)
-                    .padding(16.dp)
-                    .padding(bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(if (isLandscape) 8.dp else 16.dp)
+                    .padding(bottom = if (isLandscape) 8.dp else 16.dp),
+                verticalArrangement = Arrangement.spacedBy(if (isLandscape) 2.dp else 8.dp)
             ) {
-                // Info row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Speed: ${state.speedWpm} WPM", color = Color.White)
-                    
+                if (isLandscape) {
                     val mins = state.timeRemainingSeconds / 60
                     val secs = state.timeRemainingSeconds % 60
                     val secStr = if (secs < 10) "0$secs" else "$secs"
-                    Text("Remaining: $mins:$secStr", color = Color.White)
-                }
-
-                // Speed Slider
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("1", color = Color.White)
-                    Slider(
-                        value = state.targetSpeedWpm.toFloat(),
-                        onValueChange = { viewModel.setSpeed(it.toInt()) },
-                        valueRange = 1f..1000f,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp)
-                    )
-                    Text("1000", color = Color.White)
-                }
-
-                // Font size Slider
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("20px", color = Color.White, fontSize = 12.sp)
-                    Slider(
-                        value = state.fontSize,
-                        onValueChange = { viewModel.setFontSize(it) },
-                        valueRange = 20f..200f,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp)
-                    )
-                    Text("200px", color = Color.White, fontSize = 12.sp)
-                }
-
-                // Toggles
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = state.isRampEnabled,
-                            onCheckedChange = { viewModel.setRampTargetSpeed(it, state.targetSpeedWpm) }
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Spd: ${state.speedWpm} | Rem: $mins:$secStr", color = Color.White, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
+                        Text("1", color = Color.White, fontSize = 10.sp)
+                        Slider(
+                            value = state.speedWpm.toFloat(),
+                            onValueChange = { viewModel.setSpeed(it.toInt()) },
+                            valueRange = 1f..1000f,
+                            modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                         )
-                        Text("Ramp up", color = Color.White)
-                        if (state.isRampEnabled) {
-                            Spacer(modifier = Modifier.width(4.dp))
-                            TextButton(onClick = { viewModel.maintainRampSpeed() }, contentPadding = PaddingValues(0.dp)) {
-                                Text("Maintain", color = Color.Cyan)
+                        Text("1000", color = Color.White, fontSize = 10.sp)
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
+                        Text("20", color = Color.White, fontSize = 10.sp)
+                        Slider(
+                            value = state.fontSize,
+                            onValueChange = { viewModel.setFontSize(it) },
+                            valueRange = 20f..200f,
+                            modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+                        )
+                        Text("200", color = Color.White, fontSize = 10.sp)
+                    }
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = state.isRampEnabled,
+                                onCheckedChange = { viewModel.toggleRamp(it) }
+                            )
+                            Text("Ramp", color = Color.White, fontSize = 12.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Checkbox(
+                                checked = state.isVariableTimingEnabled,
+                                onCheckedChange = { viewModel.toggleVariableTiming(it) }
+                            )
+                            Text("Var Time", color = Color.White, fontSize = 12.sp)
+                        }
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (state.status == SessionStatus.READING) {
+                                Button(onClick = { viewModel.pauseReading() }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
+                                    Text("Pause", fontSize = 12.sp)
+                                }
+                            } else {
+                                Button(onClick = { viewModel.startReading() }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
+                                    Icon(Icons.Default.PlayArrow, contentDescription = "Play", modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Play", fontSize = 12.sp)
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            Button(
+                                onClick = {
+                                    viewModel.stopSession()
+                                    onNavigateBack()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "Stop", tint = Color.White, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Stop", color = Color.White, fontSize = 12.sp)
+                            }
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            OutlinedButton(onClick = { isZenMode = true }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
+                                Text("Zen", color = Color.White, fontSize = 12.sp)
                             }
                         }
                     }
+                } else {
+                    // Portrait logic
+                    // Info row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Speed: ${state.speedWpm} WPM", color = Color.White)
+                        
+                        val mins = state.timeRemainingSeconds / 60
+                        val secs = state.timeRemainingSeconds % 60
+                        val secStr = if (secs < 10) "0$secs" else "$secs"
+                        Text("Remaining: $mins:$secStr", color = Color.White)
+                    }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = state.isVariableTimingEnabled,
-                            onCheckedChange = { viewModel.toggleVariableTiming(it) }
+                        Text("1", color = Color.White)
+                        Slider(
+                            value = state.speedWpm.toFloat(),
+                            onValueChange = { viewModel.setSpeed(it.toInt()) },
+                            valueRange = 1f..1000f,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp)
                         )
-                        Text("Variable Time", color = Color.White)
-                    }
-                }
-
-                // Play/Pause/Stop
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (state.status == SessionStatus.READING) {
-                        Button(onClick = { viewModel.pauseReading() }) {
-                            Text("Pause")
-                        }
-                    } else {
-                        Button(onClick = { viewModel.startReading() }) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = "Play")
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Play")
-                        }
+                        Text("1000", color = Color.White)
                     }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    // Font size Slider
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("20px", color = Color.White, fontSize = 12.sp)
+                        Slider(
+                            value = state.fontSize,
+                            onValueChange = { viewModel.setFontSize(it) },
+                            valueRange = 20f..200f,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp)
+                        )
+                        Text("200px", color = Color.White, fontSize = 12.sp)
+                    }
 
-                    Button(
-                        onClick = {
-                            viewModel.stopSession()
-                            onNavigateBack()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    // Toggles
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Stop", tint = Color.White)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Stop", color = Color.White)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = state.isRampEnabled,
+                                onCheckedChange = { viewModel.toggleRamp(it) }
+                            )
+                            Text("Ramp up", color = Color.White)
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = state.isVariableTimingEnabled,
+                                onCheckedChange = { viewModel.toggleVariableTiming(it) }
+                            )
+                            Text("Variable Time", color = Color.White)
+                        }
                     }
 
-                    Spacer(modifier = Modifier.width(16.dp))
-                    
-                    OutlinedButton(onClick = { isZenMode = true }) {
-                        Text("Zen (Hide)", color = Color.White)
+                    // Play/Pause/Stop
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (state.status == SessionStatus.READING) {
+                            Button(onClick = { viewModel.pauseReading() }) {
+                                Text("Pause")
+                            }
+                        } else {
+                            Button(onClick = { viewModel.startReading() }) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = "Play")
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Play")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = {
+                                viewModel.stopSession()
+                                onNavigateBack()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Stop", tint = Color.White)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Stop", color = Color.White)
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
+                        OutlinedButton(onClick = { isZenMode = true }) {
+                            Text("Zen (Hide)", color = Color.White)
+                        }
                     }
                 }
             }

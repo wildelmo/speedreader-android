@@ -42,7 +42,7 @@ class ReadingViewModel : ViewModel() {
                 status = SessionStatus.READING,
                 // Apply ramp logic based on start conditions if ramp is enabled and we are starting from idle
                 speedWpm = if (it.isRampEnabled && it.status == SessionStatus.IDLE) {
-                    if (100 < it.targetSpeedWpm) 100 else it.targetSpeedWpm
+                    (it.speedWpm - 100).coerceAtLeast(100)
                 } else it.speedWpm
             ) 
         }
@@ -64,6 +64,7 @@ class ReadingViewModel : ViewModel() {
     private fun startEngine() {
         stopEngine()
         readingJob = viewModelScope.launch {
+            delay(2000L)
             while (_state.value.status == SessionStatus.READING) {
                 val currentState = _state.value
                 val word = currentState.currentWord
@@ -109,9 +110,8 @@ class ReadingViewModel : ViewModel() {
                 delay(4000L) // ramp interval is 4 seconds
                 val currentState = _state.value
                 val newSpeed = currentState.speedWpm + 15
-                if (newSpeed >= currentState.targetSpeedWpm) {
-                    _state.update { it.copy(speedWpm = currentState.targetSpeedWpm, isRampEnabled = false) }
-                    break
+                if (newSpeed >= 1000) {
+                    _state.update { it.copy(speedWpm = 1000) }
                 } else {
                     _state.update { it.copy(speedWpm = newSpeed) }
                 }
@@ -121,7 +121,7 @@ class ReadingViewModel : ViewModel() {
 
     fun setSpeed(wpm: Int) {
         val clamped = wpm.coerceIn(1, 1000)
-        _state.update { it.copy(targetSpeedWpm = clamped, speedWpm = clamped, isRampEnabled = false) }
+        _state.update { it.copy(speedWpm = clamped) }
     }
     
     fun setFontSize(size: Float) {
@@ -132,17 +132,18 @@ class ReadingViewModel : ViewModel() {
         _state.update { it.copy(isVariableTimingEnabled = enabled) }
     }
     
-    fun setRampTargetSpeed(enabled: Boolean, targetSpeed: Int) {
-        _state.update { it.copy(isRampEnabled = enabled, targetSpeedWpm = targetSpeed) }
+    fun toggleRamp(enabled: Boolean) {
+        _state.update { it.copy(isRampEnabled = enabled) }
+        if (enabled && _state.value.status == SessionStatus.READING) {
+            startRampLoop()
+        } else if (!enabled) {
+            rampJob?.cancel()
+            rampJob = null
+        }
     }
     
     fun adjustSpeed(amount: Int) {
-        val newSpeed = (_state.value.targetSpeedWpm + amount).coerceIn(1, 1000)
+        val newSpeed = (_state.value.speedWpm + amount).coerceIn(1, 1000)
         setSpeed(newSpeed)
-    }
-
-    fun maintainRampSpeed() {
-        // "Maintain" stops the automatic ramp (current speed is held).
-        _state.update { it.copy(isRampEnabled = false, targetSpeedWpm = it.speedWpm) }
     }
 }
