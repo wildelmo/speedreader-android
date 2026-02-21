@@ -1,5 +1,7 @@
 package com.example.speedreader.ui.screens
 
+import android.app.Activity
+import android.content.res.Configuration
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -15,14 +17,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.speedreader.domain.SessionStatus
-import androidx.compose.ui.platform.LocalView
 import com.example.speedreader.ui.ReadingViewModel
 import com.example.speedreader.ui.theme.ZenAccentRed
 
@@ -37,10 +42,25 @@ fun ReadingScreen(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val view = LocalView.current
+    val context = LocalContext.current
     DisposableEffect(state.status) {
         view.keepScreenOn = (state.status == SessionStatus.READING)
         onDispose {
             view.keepScreenOn = false
+        }
+    }
+    DisposableEffect(state.isZenModeEnabled) {
+        (context as? Activity)?.let { activity ->
+            val insetsController = WindowCompat.getInsetsController(activity.window, view)
+            if (state.isZenModeEnabled) {
+                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                insetsController.hide(WindowInsetsCompat.Type.statusBars())
+            }
+        }
+        onDispose {
+            (context as? Activity)?.let { activity ->
+                WindowCompat.getInsetsController(activity.window, view).show(WindowInsetsCompat.Type.statusBars())
+            }
         }
     }
 
